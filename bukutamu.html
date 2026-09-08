@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buku Tamu - Ahmad Danil Saputra</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #222;
+            padding: 40px 8%;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+
+        .btn-kembali {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* CONTAINER FORM & PESAN */
+        .container {
+            max-width: 700px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #4f46e5;
+        }
+
+        .btn-submit {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background: #312e81;
+        }
+
+        /* LIST KOMENTAR */
+        .komentar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .komentar-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid #4f46e5;
+        }
+
+        .komentar-card .author {
+            font-weight: bold;
+            color: #4f46e5;
+            font-size: 16px;
+        }
+
+        .komentar-card .tgl {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .komentar-card .text {
+            color: #444;
+            line-height: 1.5;
+        }
+
+        #loading {
+            text-align: center;
+            color: #666;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="index.html" class="btn-kembali">← Kembali ke Portofolio</a>
+
+        <div class="header">
+            <h1>📖 Buku Tamu Digital</h1>
+            <p>Tinggalkan pesan, saran, atau sekadar menyapa!</p>
+        </div>
+
+        <!-- FORM BUKU TAMU -->
+        <div class="card">
+            <form id="guestbookForm">
+                <div class="form-group">
+                    <label for="nama">Nama Lengkap</label>
+                    <input type="text" id="nama" required placeholder="Masukkan nama Anda">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Alamat Email</label>
+                    <input type="email" id="email" required placeholder="Masukkan email Anda">
+                </div>
+
+                <div class="form-group">
+                    <label for="komentar">Komentar / Pesan</label>
+                    <textarea id="komentar" rows="4" required placeholder="Tuliskan pesan Anda..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btnKirim">Kirim Pesan</button>
+            </form>
+        </div>
+
+        <!-- LIST KOMENTAR PENGUNJUNG -->
+        <h2>💬 Pesan dari Pengunjung</h2>
+        <div id="loading">Memuat komentar...</div>
+        <div class="komentar-list" id="komentarContainer" style="margin-top: 15px;"></div>
+    </div>
+
+   <!-- BAGIAN PALING BAWAH FILE bukutamu.html -->
+
+    <script>
+        // GANTI URL DI BAWAH INI DENGAN URL DEPLOYMENT BARU DARI GOOGLE APPS SCRIPT
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzNvDnMR8eCUffMcHrAla2SgVY7BXi0ONunUmXRmGkkkWsDWYK9z5HP6uBxNir1a4Xm/exec";
+
+        function loadComments() {
+            const container = document.getElementById('komentarContainer');
+            const loading = document.getElementById('loading');
+
+            fetch(SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if (loading) loading.style.display = 'none';
+                    container.innerHTML = '';
+                    
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<p style="text-align:center; color:#888;">Belum ada komentar.</p>';
+                        return;
+                    }
+
+                    data.reverse().forEach(item => {
+                        if (item.nama || item.komentar) {
+                            const card = document.createElement('div');
+                            card.className = 'komentar-card';
+                            card.innerHTML = `
+                                <div class="author">${escapeHtml(item.nama)}</div>
+                                <div class="tgl">${item.tanggal || ''}</div>
+                                <div class="text">${escapeHtml(item.komentar)}</div>
+                            `;
+                            container.appendChild(card);
+                        }
+                    });
+                })
+                .catch(err => {
+                    if (loading) loading.innerText = 'Gagal memuat data komentar.';
+                    console.error(err);
+                });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.getElementById('guestbookForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnKirim');
+            btn.innerText = 'Mengirim...';
+            btn.disabled = true;
+
+            const payload = {
+                nama: document.getElementById('nama').value,
+                email: document.getElementById('email').value,
+                komentar: document.getElementById('komentar').value
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert('Pesan berhasil terkirim!');
+                document.getElementById('guestbookForm').reset();
+                btn.innerText = 'Kirim Pesan';
+                btn.disabled = false;
+                loadComments();
+            })
+            .catch(err => {
+                alert('Gagal mengirim pesan.');
+                btn.innerText = 'Kirim Pesan';
+                btn.disabled = false;
+                console.error(err);
+            });
+        });
+
+        loadComments();
+    </script>
+</body>
+</html>
